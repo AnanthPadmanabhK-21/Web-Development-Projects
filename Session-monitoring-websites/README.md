@@ -1,1 +1,8 @@
+Flowchart Description:
+This flowchart represents the workflow of an Intelligent Session Monitoring and Log Analytics system. The process begins with reading application logs and parsing session-level information. The system analyzes user activity and error patterns, then automatically classifies sessions into three categories — Active, Inactive, and Forced sessions. Based on this classification, the system generates alerts and updates the monitoring dashboard. The flowchart explains the backend logic behind automated session tracking, error detection, and real-time analytics generation.
 
+Prototype 1 — Session Monitoring & Log Analytics Dashboard:
+This prototype demonstrates a dynamic dashboard that simulates a real-time session tracking system. Users can generate sessions by entering a user ID, session status, and error code. The system automatically classifies sessions and updates live analytics such as total sessions, active users, inactive users, forced sessions, and critical errors. It also includes advanced features like session filtering, user search, and log management, showcasing how organizations can monitor user activity and maintain session-level visibility in real time.
+
+Prototype 2 — AI Session Monitoring with Live System Metrics:
+This prototype extends the monitoring system by adding simulated system-level analytics and alert generation. In addition to session tracking, it displays live metrics such as CPU usage, network traffic, and active users. The system detects critical errors and triggers alert notifications to highlight potential failures. This prototype demonstrates how AI-powered monitoring can combine session analytics with system health indicators to provide a comprehensive real-time monitoring solution.
