@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Enterprise OS Flow - Phase Wise</title>
+
+<style>
+
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #0b1220;
+    color: #e5e7eb;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 18px;
+}
+
+/* PROGRESS BAR */
+.progress {
+    width: 80%;
+    margin: 15px auto;
+    background: #1f2937;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.fill {
+    height: 20px;
+    width: 0%;
+    background: linear-gradient(90deg,#38bdf8,#22c55e);
+    transition: 0.4s;
+}
+
+/* PHASE CARD */
+.phase {
+    width: 600px;
+    margin: 12px auto;
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid rgba(56,189,248,0.25);
+    border-radius: 14px;
+    text-align: left;
+    overflow: hidden;
+}
+
+/* HEADER */
+.header {
+    padding: 14px;
+    cursor: pointer;
+    font-weight: bold;
+    background: rgba(56,189,248,0.15);
+}
+
+/* CONTENT */
+.content {
+    display: none;
+    padding: 14px;
+    font-size: 14px;
+    color: #cbd5e1;
+}
+
+/* ACTIVE */
+.active .content {
+    display: block;
+}
+
+/* STATUS */
+.status {
+    float: right;
+    color: #22c55e;
+}
+
+/* BUTTONS */
+button {
+    padding: 10px 14px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #1e293b;
+    color: white;
+}
+
+button:hover {
+    background: #38bdf8;
+    color: black;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🚀 Enterprise OS Deployment Pipeline (Phase Wise)</h1>
+
+<div class="progress">
+<div class="fill" id="bar"></div>
+</div>
+
+<div id="info">Overall Progress: 0%</div>
+
+<div>
+<button onclick="toggleAll()">🔀 Toggle All</button>
+<button onclick="reset()">🔄 Reset Progress</button>
+</div>
+
+<!-- ================= PHASE 1 ================= -->
+<div class="phase" id="p1">
+<div class="header" onclick="toggle('p1')">
+Phase 1: System Discovery <span class="status" id="s1">0%</span>
+</div>
+<div class="content">
+- Inventory scan of 15,000 systems<br>
+- Active vs inventory classification<br>
+- Hardware compatibility mapping
+</div>
+</div>
+
+<!-- ================= PHASE 2 ================= -->
+<div class="phase" id="p2">
+<div class="header" onclick="toggle('p2')">
+Phase 2: Audit & Analysis <span class="status" id="s2">0%</span>
+</div>
+<div class="content">
+- OS version detection<br>
+- Security patch validation<br>
+- License compliance verification
+</div>
+</div>
+
+<!-- ================= PHASE 3 ================= -->
+<div class="phase" id="p3">
+<div class="header" onclick="toggle('p3')">
+Phase 3: Deployment Execution <span class="status" id="s3">0%</span>
+</div>
+<div class="content">
+- Batch scheduling (500–1000 systems)<br>
+- Automated OS installation<br>
+- Rollback & failure handling
+</div>
+</div>
+
+<!-- ================= PHASE 4 ================= -->
+<div class="phase" id="p4">
+<div class="header" onclick="toggle('p4')">
+Phase 4: Monitoring & Optimization <span class="status" id="s4">0%</span>
+</div>
+<div class="content">
+- Live tracking dashboard<br>
+- Performance optimization<br>
+- Final compliance reporting
+</div>
+</div>
+
+<script>
+
+let progress = 0;
+
+function update(){
+
+    progress += 25;
+
+    if(progress > 100) progress = 100;
+
+    document.getElementById("bar").style.width = progress + "%";
+    document.getElementById("info").innerText = "Overall Progress: " + progress + "%";
+
+    document.getElementById("s1").innerText = progress >= 25 ? "100%" : "0%";
+    document.getElementById("s2").innerText = progress >= 50 ? "100%" : "0%";
+    document.getElementById("s3").innerText = progress >= 75 ? "100%" : "0%";
+    document.getElementById("s4").innerText = progress >= 100 ? "100%" : "0%";
+}
+
+function toggle(id){
+    document.getElementById(id).classList.toggle("active");
+    update();
+}
+
+function toggleAll(){
+    ["p1","p2","p3","p4"].forEach(id=>{
+        document.getElementById(id).classList.toggle("active");
+    });
+    update();
+}
+
+function reset(){
+    progress = 0;
+    document.getElementById("bar").style.width = "0%";
+    document.getElementById("info").innerText = "Overall Progress: 0%";
+
+    ["s1","s2","s3","s4"].forEach(s=>{
+        document.getElementById(s).innerText="0%";
+    });
+}
+
+</script>
+
+</body>
+</html>
