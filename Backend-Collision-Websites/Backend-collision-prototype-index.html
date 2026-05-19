@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Backend Collision Management System</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Arial}
+body{background:#020617;color:white}
+
+/* LOGIN PAGE */
+#loginPage{display:flex;height:100vh;background:linear-gradient(120deg,#020617,#0f172a,#1e3a8a);background-size:300% 300%;animation:bgMove 10s infinite alternate}
+@keyframes bgMove{0%{background-position:left}100%{background-position:right}}
+
+.hero{flex:1;display:flex;flex-direction:column;justify-content:center;padding:80px}
+.hero h1{font-size:52px;font-weight:bold;background:linear-gradient(to right,#06b6d4,#2563eb);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{margin-top:20px;font-size:20px;color:#cbd5e1;max-width:500px}
+.features{margin-top:30px;line-height:35px;color:#94a3b8}
+
+.loginBox{width:380px;margin:auto;margin-right:120px;background:rgba(15,23,42,0.8);backdrop-filter:blur(15px);padding:40px;border-radius:25px;box-shadow:0 30px 60px rgba(0,0,0,.6)}
+.loginBox h2{text-align:center;margin-bottom:20px}
+
+input,select{width:100%;padding:15px;margin:10px 0;border:none;border-radius:12px;background:#020617;color:white}
+
+button{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(to right,#06b6d4,#2563eb);color:white;font-size:16px;cursor:pointer;transition:.3s}
+button:hover{transform:scale(1.03)}
+
+#app{display:none}
+.sidebar{width:220px;height:100vh;background:#020617;position:fixed;padding:20px;border-right:1px solid #1e293b}
+.main{margin-left:240px;padding:30px}
+.card{background:#0f172a;padding:25px;border-radius:20px;margin-bottom:20px;box-shadow:0 10px 25px rgba(0,0,0,.5)}
+.metric{display:inline-block;width:22%;background:#020617;padding:20px;margin:1%;border-radius:15px;text-align:center}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:10px;border-bottom:1px solid #333}
+.log{background:#020617;padding:10px;border-radius:10px;margin:5px 0}
+.role{background:#2563eb;padding:5px 10px;border-radius:10px}
+canvas{background:white;border-radius:10px;padding:10px}
+</style>
+</head>
+
+<body>
+
+<div id="loginPage">
+  <div class="hero">
+    <h1>Backend Collision Management System</h1>
+    <p>Smart monitoring platform for data collision, synchronization, analytics and real-time logs.</p>
+    <div class="features">
+      ✔ Real-time monitoring<br>
+      ✔ Admin & Viewer collaboration<br>
+      ✔ Analytics & CSV reports<br>
+      ✔ Auto log engine
+    </div>
+  </div>
+
+  <div class="loginBox">
+    <h2>Secure Login</h2>
+    <input id="email" placeholder="Enter Email">
+    <select id="role">
+      <option value="admin">Admin</option>
+      <option value="viewer">Viewer</option>
+    </select>
+    <button onclick="login()">Enter System</button>
+  </div>
+</div>
+
+<div id="app">
+  <div class="sidebar">
+    <h2>Backend System</h2>
+    <p id="userRole" class="role"></p>
+    <button onclick="showTab('dashboard')">Dashboard</button>
+    <button onclick="showTab('request')">Request</button>
+    <button onclick="showTab('products')">Products</button>
+    <button onclick="showTab('logs')">Logs</button>
+    <button onclick="showTab('charts')">Charts</button>
+    <button onclick="downloadCSV()">Download CSV</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="main">
+    <div id="dashboard" class="card">
+      <h2>Monitoring Dashboard</h2>
+      <div class="metric"><h3>Users</h3><p id="mUsers"></p></div>
+      <div class="metric"><h3>Collisions</h3><p id="mCollisions"></p></div>
+      <div class="metric"><h3>Transactions</h3><p id="mTransactions"></p></div>
+      <div class="metric"><h3>Products</h3><p id="mProducts"></p></div>
+    </div>
+
+    <div id="request" class="card" style="display:none">
+      <h2>Request Management</h2>
+      <input id="product" placeholder="Product Name">
+      <input id="quantity" type="number" placeholder="Quantity">
+      <select id="action">
+        <option>Add Product</option>
+        <option>Update Stock</option>
+        <option>Delete Product</option>
+      </select>
+      <button onclick="processRequest()">Process Request</button>
+    </div>
+
+    <div id="products" class="card" style="display:none">
+      <h2>Product Database</h2>
+      <table class="table">
+        <thead><tr><th>Name</th><th>Stock</th></tr></thead>
+        <tbody id="productTable"></tbody>
+      </table>
+    </div>
+
+    <div id="logs" class="card" style="display:none">
+      <h2>System Logs</h2>
+      <div id="logList"></div>
+    </div>
+
+    <div id="charts" class="card" style="display:none">
+      <h2>System Analytics</h2>
+      <canvas id="chart1"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+let role="viewer";
+if(!localStorage.db){
+localStorage.db=JSON.stringify({users:1,collisions:0,transactions:0,products:{},logs:[]});
+}
+function db(){return JSON.parse(localStorage.db)}
+function save(d){localStorage.db=JSON.stringify(d)}
+
+function login(){role=document.getElementById("role").value;loginPage.style.display="none";app.style.display="block";userRole.innerText=role.toUpperCase();loadAll();startAutoLogs();}
+function logout(){location.reload()}
+function showTab(tab){["dashboard","request","products","logs","charts"].forEach(id=>document.getElementById(id).style.display="none");document.getElementById(tab).style.display="block";if(tab=="charts")drawChart();}
+
+function loadAll(){
+let d=db();
+mUsers.innerText=d.users;
+mCollisions.innerText=d.collisions;
+mTransactions.innerText=d.transactions;
+mProducts.innerText=Object.keys(d.products).length;
+productTable.innerHTML="";
+for(let p in d.products){productTable.innerHTML+=`<tr><td>${p}</td><td>${d.products[p]}</td></tr>`}
+logList.innerHTML="";
+d.logs.forEach(l=>logList.innerHTML+=`<div class="log">${l}</div>`);
+}
+
+function processRequest(){
+if(role!="admin"){alert("Viewer cannot modify data");return;}
+let product=document.getElementById("product").value;
+let qty=parseInt(document.getElementById("quantity").value);
+let action=document.getElementById("action").value;
+let d=db();
+if(Math.random()>0.7){d.collisions++;alert("Collision detected!");}
+if(action=="Add Product"){d.products[product]=qty}
+if(action=="Update Stock"){d.products[product]=(d.products[product]||0)+qty}
+if(action=="Delete Product"){delete d.products[product]}
+d.transactions++;
+d.logs.unshift(`${action} : ${product} (${qty})`);
+save(d);loadAll();
+}
+
+function startAutoLogs(){
+setInterval(()=>{
+let d=db();
+d.logs.unshift("Auto Monitor: "+new Date().toLocaleTimeString());
+if(d.logs.length>20)d.logs.pop();
+save(d);loadAll();
+},1000);
+}
+
+let chart;
+function drawChart(){
+let d=db();
+if(chart)chart.destroy();
+chart=new Chart(document.getElementById("chart1"),{
+type:'bar',
+data:{labels:["Users","Collisions","Transactions","Products"],
+datasets:[{data:[d.users,d.collisions,d.transactions,Object.keys(d.products).length]}]}
+});
+}
+
+function downloadCSV(){
+let d=db();
+let csv="Metric,Value\nUsers,"+d.users+"\nCollisions,"+d.collisions+"\nTransactions,"+d.transactions+"\n\nLogs\n";
+d.logs.forEach(l=>csv+=l+"\n");
+let blob=new Blob([csv],{type:"text/csv"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="system_report.csv";
+a.click();
+}
+</script>
+</body>
+</html>
