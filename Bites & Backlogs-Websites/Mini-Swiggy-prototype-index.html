@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FoodDash Ultimate</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins}
+body{background:#f2f3f7}
+
+/* LOGIN */
+#loginPage{height:100vh;display:flex;justify-content:center;align-items:center;flex-direction:column;background:linear-gradient(120deg,#ff5f6d,#ffc371);}
+.login-box{background:white;padding:35px;border-radius:18px;width:300px;text-align:center;box-shadow:0 15px 30px rgba(0,0,0,.2)}
+input,select{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:1px solid #ddd}
+button{background:#ff4757;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-weight:bold;cursor:pointer}
+
+header{background:white;padding:15px;font-weight:bold;font-size:22px;box-shadow:0 3px 10px rgba(0,0,0,.1);position:sticky;top:0;z-index:200}
+.search-bar{display:flex;gap:10px;padding:10px;background:white;position:sticky;top:60px;z-index:150}
+.container{padding:20px;margin-bottom:90px}
+
+.card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 5px 20px rgba(0,0,0,.15);margin-bottom:20px}
+.card img{width:100%;height:180px;object-fit:cover}
+.card-body{padding:15px}
+
+/* NAVBAR */
+.navbar{position:fixed;bottom:0;width:100%;background:white;display:flex;justify-content:space-around;padding:15px;box-shadow:0 -3px 15px rgba(0,0,0,.2);z-index:200}
+.nav-btn{font-weight:bold;cursor:pointer}
+
+/* ⭐ RECOMMEND SECTION */
+.recommend-section{margin-bottom:20px}
+.recommend-scroll{display:flex;gap:15px;overflow-x:auto;padding-bottom:10px}
+.recommend-card{min-width:180px;background:white;border-radius:18px;box-shadow:0 5px 20px rgba(0,0,0,.15);overflow:hidden;animation:float 3s ease-in-out infinite}
+.recommend-card img{width:100%;height:120px;object-fit:cover}
+.recommend-card p{padding:10px;font-weight:bold}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* POPUPS */
+.popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,.6);justify-content:center;align-items:center;z-index:9999}
+.popup-box{background:white;padding:25px;border-radius:15px;width:90%;max-width:350px}
+
+/* MAP */
+#map{width:100%;height:250px;background:#ddd;border-radius:10px;margin-top:15px}
+.rider{width:20px;height:20px;background:red;border-radius:50%;position:relative;top:110px;left:10px}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+<h1>🍔 FoodDash</h1>
+<div class="login-box">
+<input id="user" placeholder="Username">
+<select id="zipSelect">
+<option>560001</option><option>560037</option><option>560066</option><option>560100</option>
+</select>
+<button onclick="login()">Login</button>
+</div>
+</div>
+
+<div id="app" style="display:none">
+<header>FoodDash Delivery</header>
+
+<div class="search-bar">
+<input id="searchInput" placeholder="Search restaurant..." onkeyup="searchData()">
+</div>
+
+<div class="container" id="homePage"></div>
+
+<div class="navbar">
+<div class="nav-btn" onclick="goHome()">🏠 Home</div>
+<div class="nav-btn" onclick="showCart()">🛒 Cart</div>
+<div class="nav-btn" onclick="showOrders()">📦 Orders</div>
+<div class="nav-btn" onclick="showAccount()">👤 Account</div>
+<div class="nav-btn" onclick="showAdmin()">🛠 Admin</div>
+<div class="nav-btn" onclick="logout()">🚪 Logout</div>
+</div>
+</div>
+
+<!-- PAYMENT -->
+<div id="paymentPopup" class="popup">
+<div class="popup-box">
+<h3>Select Payment</h3>
+<select id="payMethod">
+<option>UPI</option><option>Card</option><option>Cash on Delivery</option>
+</select>
+<button onclick="payNow()">Pay Now</button>
+</div></div>
+
+<!-- ADDRESS -->
+<div id="addressPopup" class="popup">
+<div class="popup-box">
+<h3>Add Address</h3>
+<input id="addressInput" placeholder="Delivery Address">
+<button onclick="saveAddress()">Save</button>
+</div></div>
+
+<!-- MAP -->
+<div id="mapPopup" class="popup">
+<div class="popup-box">
+<h3>Delivery Tracking</h3>
+<div id="map"><div class="rider" id="rider"></div></div>
+<button onclick="closePopup()">Close</button>
+</div></div>
+
+<script>
+// DATA
+let outlets=[
+{name:"Pizza Palace",img:"https://images.unsplash.com/photo-1594007654729-407eedc4be65",
+menu:[{name:"Farmhouse",price:250},{name:"Margherita",price:200}]},
+{name:"Burger Hub",img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+menu:[{name:"Cheese Burger",price:120},{name:"Fries",price:80}]}
+]
+
+let cart=[],orders=[],address="",paymentMode="",userName="",savedAddresses=[];
+
+// LOGIN
+function login(){userName=user.value;loginPage.style.display="none";app.style.display="block";showHome();}
+function logout(){location.reload()}
+
+// HOME WITH RECOMMEND
+function showHome(){
+let h=`<div class="recommend-section">
+<h2>⭐ Recommended For You</h2>
+<div class="recommend-scroll">
+<div class="recommend-card"><img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092"><p>Biryani Special</p></div>
+<div class="recommend-card"><img src="https://images.unsplash.com/photo-1550547660-d9450f859349"><p>Juicy Burger</p></div>
+<div class="recommend-card"><img src="https://images.unsplash.com/photo-1593560708920-61dd98c46a4e"><p>Italian Pizza</p></div>
+<div class="recommend-card"><img src="https://images.unsplash.com/photo-1589308078056-f6c1d8c5b0f5"><p>Cheesy Pasta</p></div>
+</div></div>`;
+
+outlets.forEach(o=>{
+h+=`<div class="card"><img src="${o.img}">
+<div class="card-body"><h3>${o.name}</h3>
+<button onclick='openMenu("${o.name}")'>View Menu</button></div></div>`
+})
+homePage.innerHTML=h
+}
+
+// MENU
+function openMenu(n){
+let o=outlets.find(x=>x.name==n);
+let h=`<button onclick="goHome()">⬅ Back</button><h2>${n}</h2>`
+o.menu.forEach(i=>{
+h+=`<div class="card"><div class="card-body">
+<h3>${i.name}</h3>₹${i.price}
+<button onclick='addCart("${i.name}",${i.price})'>Add</button></div></div>`
+})
+homePage.innerHTML=h
+}
+function addCart(n,p){cart.push({n,p});alert("Added to cart")}
+
+// CART + GST RESTORED
+function showCart(){
+let t=0,h="<button onclick='goHome()'>⬅ Back</button><h2>Cart</h2>"
+cart.forEach(i=>{t+=i.p;h+=i.n+" ₹"+i.p+"<br>"})
+let gst=Math.round(t*0.05),delivery=40,final=t+gst+delivery;
+h+=`<br>Subtotal ₹${t}<br>GST ₹${gst}<br>Delivery ₹${delivery}<br><b>Total ₹${final}</b>
+<br><button onclick="openAddress()">Checkout</button>`
+homePage.innerHTML=h
+}
+
+// ADDRESS & PAYMENT
+function openAddress(){addressPopup.style.display="flex"}
+function saveAddress(){address=addressInput.value;savedAddresses.push(address);addressPopup.style.display="none";paymentPopup.style.display="flex"}
+
+function payNow(){
+paymentMode=payMethod.value
+paymentPopup.style.display="none"
+let total=cart.reduce((s,i)=>s+i.p,0)
+let gst=Math.round(total*0.05)
+let delivery=40
+let final=total+gst+delivery
+
+orders.push({
+id:"FD"+Math.floor(Math.random()*100000),
+items:[...cart],
+total:final,gst,delivery,address,payment:paymentMode,time:new Date().toLocaleString()
+})
+cart=[]
+alert("Order Placed!")
+trackDelivery()
+}
+
+// DELIVERY TRACK
+function trackDelivery(){
+mapPopup.style.display="flex"
+let pos=10;let rider=document.getElementById("rider")
+let move=setInterval(()=>{pos+=10;rider.style.left=pos+"px";if(pos>260) clearInterval(move)},800)
+}
+
+// ORDER HISTORY FULL DETAILS
+function showOrders(){
+let h="<button onclick='goHome()'>⬅ Back</button><h2>My Orders</h2>"
+orders.forEach(o=>{
+h+=`<div class="card"><div class="card-body">
+<b>ID:</b> ${o.id}<br>
+<b>Date:</b> ${o.time}<br>
+<b>Items:</b> ${o.items.map(i=>i.n).join(", ")}<br>
+<b>GST:</b> ₹${o.gst}<br>
+<b>Delivery:</b> ₹${o.delivery}<br>
+<b>Total:</b> ₹${o.total}<br>
+<b>Payment:</b> ${o.payment}<br>
+<b>Address:</b> ${o.address}
+</div></div>`
+})
+homePage.innerHTML=h
+}
+
+// ACCOUNT PAGE
+function showAccount(){
+let h=`<button onclick="goHome()">⬅ Back</button><h2>My Account</h2>
+<b>Name:</b> ${userName}<br><br>
+<b>Saved Addresses:</b><br>${savedAddresses.join("<br>")||"No address saved"}<br><br>
+<b>Last Payment:</b> ${paymentMode||"None"}`
+homePage.innerHTML=h
+}
+
+// ADMIN
+function showAdmin(){
+let h="<button onclick='goHome()'>⬅ Back</button><h2>Admin Panel</h2>"
+h+=`<input id="newOutlet" placeholder="New Outlet">
+<button onclick="addOutlet()">Add Outlet</button>`
+homePage.innerHTML=h
+}
+function addOutlet(){
+outlets.push({name:newOutlet.value,img:"https://images.unsplash.com/photo-1550547660-d9450f859349",menu:[]})
+alert("Outlet added");showHome()
+}
+
+// SEARCH
+function searchData(){
+let val=searchInput.value.toLowerCase()
+let h=""
+outlets.forEach(o=>{
+if(o.name.toLowerCase().includes(val))
+h+=`<div class="card"><img src="${o.img}">
+<div class="card-body"><h3>${o.name}</h3>
+<button onclick='openMenu("${o.name}")'>View Menu</button></div></div>`
+})
+homePage.innerHTML=h
+}
+function goHome(){showHome()}
+function closePopup(){mapPopup.style.display="none"}
+</script>
+</body>
+</html>

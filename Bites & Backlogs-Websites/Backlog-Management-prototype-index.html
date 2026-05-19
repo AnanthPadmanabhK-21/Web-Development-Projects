@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>BacklogPro – Enterprise Backlog Intelligence</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body{font-family:'Segoe UI';margin:0;background:#f4f8ff}
+
+/* LOGIN PAGE – NEW VIBRANT COLORS */
+#loginPage{
+height:100vh;display:flex;justify-content:center;align-items:center;
+background:linear-gradient(135deg,#ff6a00,#ff0080,#6a11cb,#2575fc);
+background-size:400% 400%; animation:gradientMove 12s infinite alternate;
+color:white;
+}
+@keyframes gradientMove{
+0%{background-position:left}
+100%{background-position:right}
+}
+
+.loginCard{
+background:white;color:#333;padding:40px;border-radius:18px;
+width:360px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)
+}
+
+input,select{padding:10px;margin:6px;border-radius:6px;border:1px solid #ccc;width:92%}
+button{background:#1565c0;color:white;border:none;padding:10px 18px;border-radius:6px;cursor:pointer}
+
+.navbar{display:none;background:#0d47a1;color:white;padding:12px;font-size:22px}
+#dashboard{display:none;padding:20px}
+
+.box{background:white;padding:15px;border-radius:10px;margin:12px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+table{width:100%;border-collapse:collapse} th,td{padding:8px;border:1px solid #ddd;text-align:center}
+th{background:#0d47a1;color:white}
+
+.kpiWrap{display:flex;gap:15px;flex-wrap:wrap}
+.kpi{flex:1;padding:15px;border-radius:12px;color:white;text-align:center;font-size:18px;font-weight:bold}
+.total{background:#6a1b9a}.res{background:#4caf50}.prog{background:#ff9800}.del{background:#f44336}.open{background:#2196f3}
+
+.chartBox{display:flex;justify-content:center}
+canvas{max-width:300px!important;max-height:300px!important}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+<div class="loginCard">
+<h1 style="color:#ff0080">🚀 BacklogPro</h1>
+<input id="companyInput" placeholder="Company Name">
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<select id="role">
+<option value="Admin">Admin</option>
+<option value="Viewer">Viewer</option>
+</select>
+<br><br>
+<button onclick="login()">Enter Dashboard</button>
+</div>
+</div>
+
+<div id="navbar" class="navbar">
+BacklogPro Dashboard – <span id="companyLabel"></span>
+</div>
+
+<div id="dashboard">
+
+<div class="box adminOnly">
+<h3>Create Project</h3>
+<input id="projectName" placeholder="Project Name">
+<select id="projectCategory"><option>Technical</option><option>Human</option><option>Data</option></select>
+<button onclick="createProject()">Create</button>
+</div>
+
+<div class="box adminOnly">
+<h3>Add Task</h3>
+<select id="projectSelect"></select>
+<input id="title" placeholder="Task Title">
+<select id="priority"><option>High</option><option>Medium</option><option>Low</option></select>
+<input id="days" type="number" placeholder="Days">
+<button onclick="addTask()">Add Task</button>
+</div>
+
+<div class="box adminOnly">
+<h3>Assign Owner</h3>
+<input id="taskIdOwner" placeholder="Task ID">
+<input id="ownerName" placeholder="Owner">
+<button onclick="assignOwner()">Assign</button>
+</div>
+
+<div class="box">
+<button onclick="cleanup()">⚙ Run Cleanup Engine</button>
+<button onclick="exportPDF()">⬇ Export PDF Report</button>
+</div>
+
+<div class="box kpiWrap">
+<div class="kpi total">Total Tasks<br><span id="kpiTotal">0</span></div>
+<div class="kpi res">Resolved<br><span id="kpiResolved">0</span></div>
+<div class="kpi prog">In Progress<br><span id="kpiProgress">0</span></div>
+<div class="kpi del">Deleted<br><span id="kpiDeleted">0</span></div>
+<div class="kpi open">Open<br><span id="kpiOpen">0</span></div>
+</div>
+
+<div class="box chartBox"><canvas id="chart"></canvas></div>
+
+<div class="box">
+<h3>Task Table</h3>
+<table id="taskTable">
+<tr><th>ID</th><th>Project</th><th>Title</th><th>Priority</th><th>Days</th><th>Owner</th><th>Status</th></tr>
+</table>
+</div>
+
+</div>
+
+<script>
+let roleUser="",company="",chart,projects=[],backlog=[],taskId=1;
+
+function login(){
+company=companyInput.value; roleUser=role.value;
+companyLabel.innerText=company+" ("+roleUser+")";
+loginPage.style.display="none"; dashboard.style.display="block"; navbar.style.display="block";
+if(roleUser=="Viewer") document.querySelectorAll(".adminOnly").forEach(e=>e.style.display="none");
+}
+
+function createProject(){projects.push(projectName.value);
+projectSelect.innerHTML=projects.map(p=>`<option>${p}</option>`).join("");}
+
+function addTask(){backlog.push({id:taskId++,project:projectSelect.value,title:title.value,
+priority:priority.value,days:+days.value,owner:null,status:"ACTIVE"});refresh();}
+
+function assignOwner(){let t=backlog.find(x=>x.id==taskIdOwner.value);if(t)t.owner=ownerName.value;refresh();}
+
+function cleanup(){
+backlog.forEach(task=>{
+let dup=backlog.filter(t=>t.title==task.title&&t.owner==task.owner);
+if(!task.title||!task.days) task.status="ACTIVE";
+else if(dup.length>1&&task.owner) task.status="DELETED";
+else if(task.priority=="High"&&!task.owner) task.status="IN PROGRESS";
+else if(task.priority=="High"&&task.owner&&task.days<=30) task.status="RESOLVED";
+else task.status="OPEN";
+});
+refresh();
+}
+
+function refresh(){
+let tbl=`<tr><th>ID</th><th>Project</th><th>Title</th><th>Priority</th><th>Days</th><th>Owner</th><th>Status</th></tr>`;
+backlog.forEach(t=>tbl+=`<tr><td>${t.id}</td><td>${t.project}</td><td>${t.title}</td><td>${t.priority}</td><td>${t.days}</td><td>${t.owner??"-"}</td><td>${t.status}</td></tr>`);
+taskTable.innerHTML=tbl; updateAnalytics();
+}
+
+function updateAnalytics(){
+let total=backlog.length;
+let r=backlog.filter(t=>t.status=="RESOLVED").length;
+let p=backlog.filter(t=>t.status=="IN PROGRESS").length;
+let d=backlog.filter(t=>t.status=="DELETED").length;
+let o=total-(r+p+d);
+kpiTotal.innerText=total;kpiResolved.innerText=r;kpiProgress.innerText=p;kpiDeleted.innerText=d;kpiOpen.innerText=o;
+
+if(chart) chart.destroy();
+chart=new Chart(document.getElementById('chart'),{
+type:'doughnut',
+data:{labels:["Resolved","Progress","Deleted","Open"],
+datasets:[{data:[r,p,d,o]}]},
+options:{animation:{duration:1200}}
+});
+}
+
+async function exportPDF(){
+const {jsPDF}=window.jspdf;
+let doc=new jsPDF();
+doc.text("BacklogPro Report - "+company,10,10);
+let y=20;
+backlog.forEach(t=>{doc.text(`${t.id} | ${t.project} | ${t.title} | ${t.priority} | ${t.status}`,10,y); y+=8;});
+doc.save("BacklogReport.pdf");
+}
+</script>
+
+</body>
+</html>
