@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Delivery Mediator Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins}
+body{background:#eef2f7}
+
+/* LOGIN */
+.login{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+}
+
+.login-box{
+background:white;
+padding:35px;
+border-radius:16px;
+width:340px;
+text-align:center;
+box-shadow:0 20px 40px rgba(0,0,0,0.2);
+}
+
+/* TOP BAR */
+.topbar{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:60px;
+background:white;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:0 16px;
+box-shadow:0 3px 12px rgba(0,0,0,0.1);
+z-index:1000;
+}
+
+.menu{font-size:24px;cursor:pointer}
+.logo{font-weight:700;color:#1d4ed8}
+.user{background:#e0e7ff;padding:6px 12px;border-radius:20px;font-size:13px}
+
+/* SIDEBAR */
+.sidebar{
+position:fixed;
+top:60px;
+left:-260px;
+width:200px;
+height:100%;
+background:#111827;
+color:white;
+padding:18px;
+transition:0.3s;
+z-index:999;
+}
+
+.sidebar.open{left:0}
+
+.sidebar button{
+width:100%;
+padding:10px;
+margin:8px 0;
+background:none;
+border:1px solid rgba(255,255,255,0.2);
+color:white;
+border-radius:8px;
+cursor:pointer;
+}
+
+/* MAIN SHIFT FIX */
+.main{
+padding:85px 18px;
+max-width:1200px;
+margin:auto;
+transition:0.3s;
+}
+
+.main.shift{
+margin-left:200px;
+}
+
+/* CARDS */
+.cards{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:12px;
+margin-bottom:12px;
+}
+
+.card{
+background:white;
+padding:14px;
+border-radius:12px;
+text-align:center;
+box-shadow:0 5px 15px rgba(0,0,0,0.06);
+}
+
+.card h2{color:#1d4ed8}
+
+/* BOX */
+.box{
+background:white;
+padding:14px;
+border-radius:14px;
+margin-top:12px;
+box-shadow:0 5px 15px rgba(0,0,0,0.06);
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+button{
+background:#1d4ed8;
+color:white;
+border:none;
+padding:10px 14px;
+border-radius:10px;
+cursor:pointer;
+}
+
+.alert{background:#ef4444;color:white;padding:10px;border-radius:10px;margin:6px 0}
+.good{background:#22c55e;color:white;padding:10px;border-radius:10px;margin:6px 0}
+
+.bar{
+height:10px;
+background:#e5e7eb;
+border-radius:10px;
+overflow:hidden;
+margin-bottom:8px;
+}
+.bar div{height:10px;border-radius:10px}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="loginPage">
+<div class="login-box">
+<h2>Delivery Mediator Login</h2>
+<input id="user" placeholder="Username">
+<input id="address" placeholder="Warehouse Address">
+<button onclick="login()">Login</button>
+</div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar" id="topbar" style="display:none">
+<div class="menu" onclick="toggle()">☰</div>
+<div class="logo">SMART DELIVERY SYSTEM</div>
+<div class="user" id="userBox"></div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="side">
+<button onclick="show('dash')">Dashboard</button>
+<button onclick="show('orders')">Collect Orders</button>
+<button onclick="show('analysis')">Price Analysis</button>
+<button onclick="show('allocate')">Warehouse Allocation</button>
+<button onclick="show('track')">Tracking</button>
+<button onclick="show('alerts')">Alerts</button>
+<button onclick="show('help')">Help</button>
+<button onclick="logout()">Logout</button>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="app" style="display:none">
+
+<!-- DASH -->
+<div id="dash">
+
+<div class="cards">
+<div class="card"><h2 id="ordersCount">0</h2><p>Total Orders</p></div>
+<div class="card"><h2 id="active">0</h2><p>Active</p></div>
+<div class="card"><h2 id="revenue">₹0</h2><p>Revenue</p></div>
+<div class="card"><h2 id="alertCount">0</h2><p>Alerts</p></div>
+</div>
+
+<div class="box">
+<h3>Order Flow</h3>
+<p>Registered: <span id="flow1">0</span></p>
+<p>In Transit: <span id="flow2">0</span></p>
+<p>Delivered: <span id="flow3">0</span></p>
+</div>
+
+</div>
+
+<!-- ORDERS -->
+<div id="orders" class="box" style="display:none">
+<h3>Collect Orders</h3>
+
+<select id="channel">
+<option>Amazon</option>
+<option>Flipkart</option>
+<option>Myntra</option>
+</select>
+
+<input id="product" placeholder="Product">
+<input id="qty" type="number" placeholder="Qty">
+<input id="weight" placeholder="Weight">
+<input id="zip" placeholder="ZIP">
+
+<select id="quality">
+<option>Normal</option>
+<option>Fragile</option>
+<option>Perishable</option>
+</select>
+
+<button onclick="addOrder()">Add Order</button>
+
+<div id="orderList"></div>
+</div>
+
+<!-- ANALYSIS -->
+<div id="analysis" class="box" style="display:none">
+<h3>Analysis</h3>
+<button onclick="runAnalysis()">Run</button>
+<p id="analysisResult"></p>
+</div>
+
+<!-- ALLOCATION -->
+<div id="allocate" class="box" style="display:none">
+<h3>Warehouse Allocation</h3>
+<button onclick="allocate()">Allocate</button>
+<p id="allocationResult"></p>
+</div>
+
+<!-- TRACK -->
+<div id="track" class="box" style="display:none">
+<h3>Tracking</h3>
+<button onclick="track()">Update</button>
+<div id="timeline"></div>
+</div>
+
+<!-- ALERT -->
+<div id="alerts" class="box" style="display:none">
+<h3>Alerts</h3>
+<button onclick="checkEmergency()">Check</button>
+<div id="alertBox"></div>
+</div>
+
+<!-- HELP -->
+<div id="help" class="box" style="display:none">
+<h3>Help</h3>
+<button onclick="help()">Info</button>
+<p id="helpText"></p>
+</div>
+
+</div>
+
+<script>
+
+let orders=[]
+let revenueVal=0
+let alerts=0
+
+function login(){
+loginPage.style.display="none"
+app.style.display="block"
+topbar.style.display="flex"
+userBox.innerText=user.value+" | "+address.value
+}
+
+function toggle(){
+side.classList.toggle("open")
+app.classList.toggle("shift")
+}
+
+function show(id){
+["dash","orders","analysis","allocate","track","alerts","help"]
+.forEach(x=>document.getElementById(x).style.display="none")
+
+document.getElementById(id).style.display="block"
+side.classList.remove("open")
+app.classList.remove("shift")
+}
+
+/* ORDERS */
+function addOrder(){
+orders.push(product.value)
+revenueVal += 120
+
+document.getElementById("ordersCount").innerText = orders.length
+document.getElementById("active").innerText = orders.length
+document.getElementById("revenue").innerText = "₹"+revenueVal
+
+orderList.innerHTML += "<p>"+channel.value+" - "+product.value+"</p>"
+
+updateFlow()
+}
+
+/* FLOW */
+function updateFlow(){
+let total=orders.length
+let transit=Math.floor(total*0.6)
+let delivered=Math.floor(total*0.3)
+
+flow1.innerText=total
+flow2.innerText=transit
+flow3.innerText=delivered
+}
+
+/* ANALYSIS */
+function runAnalysis(){
+analysisResult.innerText="Cost ₹"+orders.length*120
+}
+
+/* ALLOCATION */
+function allocate(){
+allocationResult.innerText="Distributed across India hubs"
+}
+
+/* TRACK */
+function track(){
+timeline.innerHTML+="<div class='good'>Shipment progressing</div>"
+}
+
+/* ALERT */
+function checkEmergency(){
+if(Math.random()>0.6){
+alerts++
+alertCount.innerText=alerts
+alertBox.innerHTML+="<div class='alert'>Delay detected</div>"
+}else{
+alertBox.innerHTML+="<div class='good'>All clear</div>"
+}
+}
+
+/* HELP */
+function help(){
+helpText.innerText="System running: "+orders.length+" orders"
+}
+
+/* LOGOUT */
+function logout(){
+location.reload()
+}
+
+</script>
+
+</body>
+</html>

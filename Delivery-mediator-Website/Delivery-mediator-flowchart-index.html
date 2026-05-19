@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Workflow Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+<style>
+body{font-family:Poppins;margin:0;background:#eef2ff;text-align:center}
+header{background:#0f172a;color:#fff;padding:25px}
+.card{background:white;width:60%;margin:60px auto;padding:40px;border-radius:20px;box-shadow:0 15px 35px rgba(0,0,0,.15)}
+button{padding:12px 25px;background:#2563eb;color:white;border:none;border-radius:10px;cursor:pointer;margin-top:20px}
+.step{font-size:26px;font-weight:600}
+.desc{margin-top:15px;font-size:18px;color:#555}
+</style>
+</head>
+
+<body>
+<header><h1>Delivery Workflow</h1></header>
+
+<div class="card">
+<div id="stepTitle" class="step"></div>
+<div id="stepDesc" class="desc"></div>
+<button onclick="nextStep()">Next Step ➜</button>
+</div>
+
+<script>
+let step=0;
+const steps=[
+["Order Received","Orders collected from Amazon, Myntra & Flipkart"],
+["Validate Package","Check size, weight and ZIP"],
+["Warehouse Allocation","Nearest warehouse selected"],
+["Transport Assignment","Truck or Van assigned"],
+["Dispatch & Invoice","Shipment leaves warehouse"],
+["Live Tracking","Customer tracks until delivered"]
+];
+function nextStep(){
+ if(step<steps.length){
+   document.getElementById("stepTitle").innerText=steps[step][0];
+   document.getElementById("stepDesc").innerText=steps[step][1];
+   step++;
+ }else{
+   document.getElementById("stepTitle").innerText="Delivered ✅";
+   document.getElementById("stepDesc").innerText="Process completed";
+ }
+}
+nextStep();
+</script>
+</body>
+</html>
