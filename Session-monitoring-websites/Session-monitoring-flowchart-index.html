@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Session Analytics Flowchart</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      overflow-x: hidden;
+    }
+
+    .glow {
+      box-shadow: 0px 0px 30px rgba(99,102,241,0.4);
+    }
+
+    .arrow {
+      font-size: 40px;
+      animation: bounce 1.5s infinite;
+    }
+
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(10px); }
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 min-h-screen text-white p-10">
+
+  <div class="max-w-6xl mx-auto">
+
+    <h1 class="text-6xl font-bold text-center mb-6">
+      Intelligent Session Monitoring
+    </h1>
+
+    <p class="text-center text-slate-300 text-xl mb-16">
+      Flowchart Representation of Log Analytics & Session Classification System
+    </p>
+
+    <div class="flex flex-col items-center gap-5">
+
+      <!-- STEP 1 -->
+      <div class="bg-indigo-500 glow px-12 py-6 rounded-3xl text-2xl font-bold">
+        Read Application Logs
+      </div>
+
+      <div class="arrow">↓</div>
+
+      <!-- STEP 2 -->
+      <div class="bg-cyan-500 glow px-12 py-6 rounded-3xl text-2xl font-bold">
+        Parse Session Data
+      </div>
+
+      <div class="arrow">↓</div>
+
+      <!-- STEP 3 -->
+      <div class="bg-purple-500 glow px-12 py-6 rounded-3xl text-2xl font-bold">
+        Analyze Activity & Errors
+      </div>
+
+      <div class="arrow">↓</div>
+
+      <!-- CLASSIFICATION -->
+      <div class="grid md:grid-cols-3 gap-8 w-full mt-10">
+
+        <!-- ACTIVE -->
+        <div class="bg-green-500/20 border border-green-400 rounded-3xl p-8 text-center backdrop-blur-xl glow hover:scale-105 transition-all duration-300">
+
+          <h2 class="text-4xl font-bold text-green-300 mb-5">
+            ACTIVE
+          </h2>
+
+          <ul class="space-y-3 text-lg text-slate-200">
+            <li>✔ Login Successful</li>
+            <li>✔ Session > 2 Minutes</li>
+            <li>✔ No Critical Errors</li>
+            <li>✔ Continuous Activity</li>
+          </ul>
+        </div>
+
+        <!-- INACTIVE -->
+        <div class="bg-yellow-500/20 border border-yellow-400 rounded-3xl p-8 text-center backdrop-blur-xl glow hover:scale-105 transition-all duration-300">
+
+          <h2 class="text-4xl font-bold text-yellow-300 mb-5">
+            INACTIVE
+          </h2>
+
+          <ul class="space-y-3 text-lg text-slate-200">
+            <li>⚠ User Timeout</li>
+            <li>⚠ Low Activity</li>
+            <li>⚠ User Exit</li>
+            <li>⚠ Session Expired</li>
+          </ul>
+        </div>
+
+        <!-- FORCED -->
+        <div class="bg-red-500/20 border border-red-400 rounded-3xl p-8 text-center backdrop-blur-xl glow hover:scale-105 transition-all duration-300">
+
+          <h2 class="text-4xl font-bold text-red-300 mb-5">
+            FORCED
+          </h2>
+
+          <ul class="space-y-3 text-lg text-slate-200">
+            <li>✖ Authentication Failure</li>
+            <li>✖ Network Failure</li>
+            <li>✖ 500/600/700 Errors</li>
+            <li>✖ Captcha Failure</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- FINAL OUTPUT -->
+      <div class="arrow mt-10">↓</div>
+
+      <div class="bg-pink-500 glow px-12 py-6 rounded-3xl text-2xl font-bold mt-5">
+        Dashboard & Alert Generation
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

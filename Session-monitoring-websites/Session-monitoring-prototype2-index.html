@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>AI Session Monitoring Dashboard</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+
+    body{
+      overflow-x:hidden;
+      font-family:Arial, sans-serif;
+    }
+
+    .glass{
+      background:rgba(255,255,255,0.08);
+      backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,0.1);
+    }
+
+    .card:hover{
+      transform:translateY(-5px);
+      transition:0.3s;
+    }
+
+    .pulse{
+      animation:pulse 2s infinite;
+    }
+
+    @keyframes pulse{
+      0%{transform:scale(1);}
+      50%{transform:scale(1.02);}
+      100%{transform:scale(1);}
+    }
+
+    .alert-box{
+      position:fixed;
+      top:20px;
+      right:20px;
+      z-index:9999;
+      display:none;
+    }
+
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 min-h-screen text-white">
+
+<!-- ALERT -->
+
+<div id="alertBox" class="alert-box bg-red-500 px-6 py-4 rounded-2xl shadow-2xl">
+  Critical Error Detected!
+</div>
+
+<div class="max-w-7xl mx-auto p-8">
+
+  <!-- HEADER -->
+
+  <div class="text-center mb-12">
+
+    <h1 class="text-6xl font-bold mb-5 pulse">
+      Intelligent Session Monitoring Dashboard
+    </h1>
+
+    <p class="text-slate-300 text-xl">
+      AI Log Analytics • Session Tracking • Error Segregation
+    </p>
+
+  </div>
+
+  <!-- LIVE SYSTEM METRICS -->
+
+  <div class="grid md:grid-cols-3 gap-6 mb-10">
+
+    <div class="glass rounded-3xl p-6 shadow-xl">
+      <h2 class="text-2xl font-semibold mb-4">CPU Usage</h2>
+      <p id="cpuUsage" class="text-5xl font-bold text-cyan-300">0%</p>
+    </div>
+
+    <div class="glass rounded-3xl p-6 shadow-xl">
+      <h2 class="text-2xl font-semibold mb-4">Network Traffic</h2>
+      <p id="networkUsage" class="text-5xl font-bold text-pink-300">0 Mbps</p>
+    </div>
+
+    <div class="glass rounded-3xl p-6 shadow-xl">
+      <h2 class="text-2xl font-semibold mb-4">Live Users</h2>
+      <p id="liveUsers" class="text-5xl font-bold text-green-300">0</p>
+    </div>
+
+  </div>
+
+  <!-- SESSION ENGINE -->
+
+  <div class="glass rounded-3xl p-8 shadow-2xl mb-10">
+
+    <h2 class="text-3xl font-semibold mb-8">
+      Session Generator Engine
+    </h2>
+
+    <div class="grid md:grid-cols-4 gap-6">
+
+      <input
+        id="userId"
+        type="text"
+        placeholder="Enter User ID"
+        class="bg-slate-800 p-4 rounded-2xl border border-slate-700 outline-none"
+      >
+
+      <select
+        id="sessionStatus"
+        class="bg-slate-800 p-4 rounded-2xl border border-slate-700 outline-none"
+      >
+        <option value="ACTIVE">Active Session</option>
+        <option value="INACTIVE">Inactive Session</option>
+        <option value="FORCED">Forced Session</option>
+      </select>
+
+      <select
+        id="errorCode"
+        class="bg-slate-800 p-4 rounded-2xl border border-slate-700 outline-none"
+      >
+        <option value="0">No Error</option>
+        <option value="401">Authentication Error</option>
+        <option value="403">Captcha Failure</option>
+        <option value="500">Server Error</option>
+        <option value="600">Network Failure</option>
+        <option value="700">Database Failure</option>
+      </select>
+
+      <button
+        onclick="createSession()"
+        class="bg-indigo-500 hover:bg-indigo-600 rounded-2xl text-lg font-semibold"
+      >
+        Generate Session
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- ANALYTICS CARDS -->
+
+  <div class="grid md:grid-cols-5 gap-6 mb-10">
+
+    <div class="glass card rounded-3xl p-6">
+      <h3>Total Sessions</h3>
+      <p id="totalCount" class="text-5xl mt-4 font-bold">0</p>
+    </div>
+
+    <div class="glass card rounded-3xl p-6 border border-green-400">
+      <h3 class="text-green-300">Active</h3>
+      <p id="activeCount" class="text-5xl mt-4 font-bold">0</p>
+    </div>
+
+    <div class="glass card rounded-3xl p-6 border border-yellow-400">
+      <h3 class="text-yellow-300">Inactive</h3>
+      <p id="inactiveCount" class="text-5xl mt-4 font-bold">0</p>
+    </div>
+
+    <div class="glass card rounded-3xl p-6 border border-red-400">
+      <h3 class="text-red-300">Forced</h3>
+      <p id="forcedCount" class="text-5xl mt-4 font-bold">0</p>
+    </div>
+
+    <div class="glass card rounded-3xl p-6 border border-cyan-400">
+      <h3 class="text-cyan-300">Critical Errors</h3>
+      <p id="criticalCount" class="text-5xl mt-4 font-bold">0</p>
+    </div>
+
+  </div>
+
+  <!-- CHARTS -->
+
+  <div class="grid md:grid-cols-2 gap-8 mb-10">
+
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-semibold mb-6">Session Distribution</h2>
+      <canvas id="pieChart"></canvas>
+    </div>
+
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-semibold mb-6">Session Activity Graph</h2>
+      <canvas id="lineChart"></canvas>
+    </div>
+
+  </div>
+
+  <!-- ACTION BUTTONS -->
+
+  <div class="flex flex-wrap gap-4 mb-10">
+
+    <button onclick="filterLogs('ALL')" class="bg-slate-700 px-6 py-3 rounded-2xl">
+      All
+    </button>
+
+    <button onclick="filterLogs('ACTIVE')" class="bg-green-500 px-6 py-3 rounded-2xl">
+      Active
+    </button>
+
+    <button onclick="filterLogs('INACTIVE')" class="bg-yellow-500 px-6 py-3 rounded-2xl">
+      Inactive
+    </button>
+
+    <button onclick="filterLogs('FORCED')" class="bg-red-500 px-6 py-3 rounded-2xl">
+      Forced
+    </button>
+
+    <button onclick="downloadCSV()" class="bg-cyan-500 px-6 py-3 rounded-2xl">
+      Download CSV
+    </button>
+
+    <button onclick="clearLogs()" class="bg-pink-500 px-6 py-3 rounded-2xl">
+      Clear Logs
+    </button>
+
+  </div>
+
+  <!-- SEARCH -->
+
+  <div class="glass rounded-3xl p-6 mb-10">
+
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search User ID..."
+      onkeyup="searchLogs()"
+      class="bg-slate-800 p-4 rounded-2xl border border-slate-700 outline-none w-full"
+    >
+
+  </div>
+
+  <!-- LOG TABLE -->
+
+  <div class="glass rounded-3xl p-8 overflow-hidden">
+
+    <h2 class="text-3xl font-semibold mb-6">
+      Live Session Database
+    </h2>
+
+    <div class="overflow-x-auto">
+
+      <table class="w-full text-left">
+
+        <thead>
+
+          <tr class="bg-white/10">
+
+            <th class="p-4">Session ID</th>
+            <th class="p-4">User ID</th>
+            <th class="p-4">Timestamp</th>
+            <th class="p-4">Duration</th>
+            <th class="p-4">Status</th>
+            <th class="p-4">Error</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody id="logTable"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+let sessionLogs = [];
+
+let total = 0;
+let active = 0;
+let inactive = 0;
+let forced = 0;
+let critical = 0;
+
+const pieCtx = document.getElementById('pieChart');
+
+const pieChart = new Chart(pieCtx, {
+  type: 'pie',
+  data: {
+    labels: ['Active','Inactive','Forced'],
+    datasets: [{
+      data: [0,0,0]
+    }]
+  }
+});
+
+const lineCtx = document.getElementById('lineChart');
+
+const lineChart = new Chart(lineCtx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Sessions',
+      data: []
+    }]
+  }
+});
+
+function createSession(){
+
+  const userId = document.getElementById("userId").value;
+  const status = document.getElementById("sessionStatus").value;
+  const errorCode = document.getElementById("errorCode").value;
+
+  if(userId === ""){
+    alert("Enter User ID");
+    return;
+  }
+
+  const session = {
+
+    sessionId : "SID-" + Math.floor(Math.random()*100000),
+
+    userId : userId,
+
+    timestamp : new Date().toLocaleString(),
+
+    duration : Math.floor(Math.random()*600) + " sec",
+
+    status : status,
+
+    error : getError(errorCode),
+
+    errorCode : errorCode
+
+  };
+
+  sessionLogs.push(session);
+
+  classify(session);
+
+  renderLogs(sessionLogs);
+
+}
+
+function classify(session){
+
+  total++;
+
+  if(session.status === "ACTIVE"){
+    active++;
+  }
+
+  else if(session.status === "INACTIVE"){
+    inactive++;
+  }
+
+  else{
+    forced++;
+  }
+
+  if(session.errorCode >= 500){
+
+    critical++;
+
+    showAlert();
+
+  }
+
+  updateDashboard();
+
+}
+
+function updateDashboard(){
+
+  document.getElementById("totalCount").innerText = total;
+
+  document.getElementById("activeCount").innerText = active;
+
+  document.getElementById("inactiveCount").innerText = inactive;
+
+  document.getElementById("forcedCount").innerText = forced;
+
+  document.getElementById("criticalCount").innerText = critical;
+
+  document.getElementById("liveUsers").innerText = total;
+
+  pieChart.data.datasets[0].data = [active,inactive,forced];
+
+  pieChart.update();
+
+  lineChart.data.labels.push(total);
+
+  lineChart.data.datasets[0].data.push(total);
+
+  lineChart.update();
+
+}
+
+function getError(code){
+
+  switch(code){
+
+    case "0":
+      return "No Error";
+
+    case "401":
+      return "Authentication Failure";
+
+    case "403":
+      return "Captcha Failure";
+
+    case "500":
+      return "Server Error";
+
+    case "600":
+      return "Network Failure";
+
+    case "700":
+      return "Database Failure";
+
+    default:
+      return "Unknown Error";
+
+  }
+
+}
+
+function renderLogs(data){
+
+  const table = document.getElementById("logTable");
+
+  table.innerHTML = "";
+
+  data.forEach(log => {
+
+    table.innerHTML += `
+
+      <tr class="border-b border-white/10 hover:bg-white/5">
+
+        <td class="p-4">${log.sessionId}</td>
+
+        <td class="p-4">${log.userId}</td>
+
+        <td class="p-4">${log.timestamp}</td>
+
+        <td class="p-4">${log.duration}</td>
+
+        <td class="p-4">${log.status}</td>
+
+        <td class="p-4">${log.error}</td>
+
+      </tr>
+
+    `;
+
+  });
+
+}
+
+function filterLogs(type){
+
+  if(type === "ALL"){
+    renderLogs(sessionLogs);
+    return;
+  }
+
+  const filtered = sessionLogs.filter(
+    log => log.status === type
+  );
+
+  renderLogs(filtered);
+
+}
+
+function searchLogs(){
+
+  const value = document.getElementById("searchInput").value.toLowerCase();
+
+  const filtered = sessionLogs.filter(
+    log => log.userId.toLowerCase().includes(value)
+  );
+
+  renderLogs(filtered);
+
+}
+
+function clearLogs(){
+
+  sessionLogs = [];
+
+  total = 0;
+  active = 0;
+  inactive = 0;
+  forced = 0;
+  critical = 0;
+
+  updateDashboard();
+
+  renderLogs(sessionLogs);
+
+}
+
+function showAlert(){
+
+  const alertBox = document.getElementById("alertBox");
+
+  alertBox.style.display = "block";
+
+  setTimeout(() => {
+    alertBox.style.display = "none";
+  },3000);
+
+}
+
+function downloadCSV(){
+
+  let csv = "SessionID,UserID,Timestamp,Duration,Status,Error\n";
+
+  sessionLogs.forEach(log => {
+
+    csv += `${log.sessionId},${log.userId},${log.timestamp},${log.duration},${log.status},${log.error}\n`;
+
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+
+  const link = document.createElement('a');
+
+  link.href = URL.createObjectURL(blob);
+
+  link.download = "session_logs.csv";
+
+  link.click();
+
+}
+
+setInterval(() => {
+
+  document.getElementById("cpuUsage").innerText =
+    Math.floor(Math.random()*100) + "%";
+
+  document.getElementById("networkUsage").innerText =
+    Math.floor(Math.random()*1000) + " Mbps";
+
+},2000);
+
+setInterval(() => {
+
+  const statuses = ["ACTIVE","INACTIVE","FORCED"];
+
+  const errors = ["0","401","403","500","600","700"];
+
+  const randomSession = {
+
+    sessionId : "AUTO-" + Math.floor(Math.random()*100000),
+
+    userId : "User" + Math.floor(Math.random()*500),
+
+    timestamp : new Date().toLocaleString(),
+
+    duration : Math.floor(Math.random()*600) + " sec",
+
+    status : statuses[Math.floor(Math.random()*3)],
+
+    errorCode : errors[Math.floor(Math.random()*6)]
+
+  };
+
+  randomSession.error = getError(randomSession.errorCode);
+
+  sessionLogs.push(randomSession);
+
+  classify(randomSession);
+
+  renderLogs(sessionLogs);
+
+},5000);
+
+</script>
+
+</body>
+</html>
